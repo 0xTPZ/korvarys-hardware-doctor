@@ -15,9 +15,10 @@ public sealed class GpuTelemetryService
             using var searcher = new ManagementObjectSearcher("root\\CIMV2", "SELECT Name, UtilizationPercentage FROM Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine");
             var values = searcher.Get().Cast<ManagementObject>()
                 .Select(x => x["UtilizationPercentage"])
-                .OfType<uint>()
+                .Select(value => value is null ? 0L : Convert.ToInt64(value))
+                .Where(value => value > 0)
                 .ToArray();
-            var usage = values.Length == 0 ? null : $"{Math.Min(100, values.Select(v => (long)v).Sum())}%";
+            var usage = values.Length == 0 ? null : $"{Math.Min(100, values.Sum())}%";
             return new GpuTelemetry(_amd.ReadCelsius(), usage, _amd.IsAvailable ? "AMD ADL + Windows counters" : "Windows GPU Performance Counters", values.Length > 0 || _amd.IsAvailable);
         }
         catch
@@ -26,4 +27,3 @@ public sealed class GpuTelemetryService
         }
     }
 }
-
