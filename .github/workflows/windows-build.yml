@@ -1,0 +1,25 @@
+name: Windows build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build desktop app
+        run: dotnet build src/KorvarysHardwareDoctor/KorvarysHardwareDoctor.csproj --configuration Release
+      - name: Publish portable folder
+        run: dotnet publish src/KorvarysHardwareDoctor/KorvarysHardwareDoctor.csproj --configuration Release --output artifacts/KorvarysHardwareDoctor
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KorvarysHardwareDoctor-windows
+          path: artifacts/KorvarysHardwareDoctor
