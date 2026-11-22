@@ -1,0 +1,6 @@
+report.json
+reports/
+*.log
+bin/
+obj/
+.DS_Store
