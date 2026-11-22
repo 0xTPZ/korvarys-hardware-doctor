@@ -16,6 +16,7 @@ internal sealed class AmdAdlTemperatureService : IDisposable
     private readonly IntPtr _context;
     private readonly MainControlDestroyDelegate? _destroy;
     private readonly TemperatureGetDelegate? _temperatureGet;
+    private readonly TemperatureGetDelegate? _temperatureGetN;
     private readonly AllocDelegate _allocator = Marshal.AllocHGlobal;
 
     public bool IsAvailable { get; }
@@ -29,6 +30,7 @@ internal sealed class AmdAdlTemperatureService : IDisposable
             _destroy = Marshal.GetDelegateForFunctionPointer<MainControlDestroyDelegate>(NativeLibrary.GetExport(_library, "ADL2_Main_Control_Destroy"));
             var count = Marshal.GetDelegateForFunctionPointer<AdapterCountDelegate>(NativeLibrary.GetExport(_library, "ADL2_Adapter_NumberOfAdapters_Get"));
             _temperatureGet = Marshal.GetDelegateForFunctionPointer<TemperatureGetDelegate>(NativeLibrary.GetExport(_library, "ADL2_Overdrive5_Temperature_Get"));
+            _temperatureGetN = TryGetTemperatureDelegate("ADL2_OverdriveN_Temperature_Get");
             if (create(_allocator, 1, out _context) != 0 || count(_context, out var adapters) != 0 || adapters < 1) return;
             IsAvailable = true;
         }
@@ -38,8 +40,28 @@ internal sealed class AmdAdlTemperatureService : IDisposable
     public string? ReadCelsius()
     {
         if (!IsAvailable || _temperatureGet is null) return null;
-        var temperature = new AdlTemperature();
-        return _temperatureGet(_context, 0, 1, ref temperature) == 0 ? $"{temperature.Value / 1000.0:0.#} °C" : null;
+        foreach (var thermalIndex in new[] { 0, 1 })
+        {
+            var temperature = new AdlTemperature();
+            if (_temperatureGet(_context, 0, thermalIndex, ref temperature) == 0 && temperature.Value > 0)
+                return $"{temperature.Value / 1000.0:0.#} °C";
+        }
+        if (_temperatureGetN is not null)
+        {
+            foreach (var sensorIndex in new[] { 0, 1, 2 })
+            {
+                var temperature = new AdlTemperature();
+                if (_temperatureGetN(_context, 0, sensorIndex, ref temperature) == 0 && temperature.Value > 0)
+                    return $"{temperature.Value / 1000.0:0.#} °C";
+            }
+        }
+        return null;
+    }
+
+    private TemperatureGetDelegate? TryGetTemperatureDelegate(string name)
+    {
+        try { return Marshal.GetDelegateForFunctionPointer<TemperatureGetDelegate>(NativeLibrary.GetExport(_library, name)); }
+        catch { return null; }
     }
 
     public void Dispose()
