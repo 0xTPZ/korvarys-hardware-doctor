@@ -2,7 +2,7 @@ using System.Management;
 
 namespace KorvarysHardwareDoctor;
 
-public sealed record GpuTelemetry(string? Temperature, string? Usage, string Source, bool Supported);
+public sealed record GpuTelemetry(string? Temperature, string? Usage, string? CoreClock, string? MemoryClock, string Source, bool Supported);
 
 public sealed class GpuTelemetryService
 {
@@ -20,11 +20,11 @@ public sealed class GpuTelemetryService
                 .ToArray();
             var activity = _amd.ReadActivity();
             var usage = activity.Usage ?? (values.Length == 0 ? null : $"{Math.Min(100, values.Sum())}%");
-            return new GpuTelemetry(_amd.ReadCelsius(), usage, _amd.IsAvailable ? "AMD ADL + Windows counters" : "Windows GPU Performance Counters", values.Length > 0 || _amd.IsAvailable);
+            return new GpuTelemetry(_amd.ReadCelsius(), usage, activity.CoreClock, activity.MemoryClock, _amd.IsAvailable ? "AMD ADL + Windows counters" : "Windows GPU Performance Counters", values.Length > 0 || _amd.IsAvailable);
         }
         catch
         {
-            return new GpuTelemetry(null, null, "Métrica não disponível", false);
+            return new GpuTelemetry(null, null, null, null, "Métrica não disponível", false);
         }
     }
 }
