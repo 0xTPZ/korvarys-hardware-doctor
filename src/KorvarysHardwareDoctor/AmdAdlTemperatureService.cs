@@ -10,6 +10,7 @@ internal sealed class AmdAdlTemperatureService : IDisposable
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int AdapterCountDelegate(IntPtr context, out int count);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int TemperatureGetDelegate(IntPtr context, int adapterIndex, int thermalIndex, ref AdlTemperature temperature);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int ActivityGetDelegate(IntPtr context, int adapterIndex, ref AdlActivity activity);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int FanSpeedGetDelegate(IntPtr context, int adapterIndex, int thermalIndex, ref AdlFanSpeedValue value);
 
     [StructLayout(LayoutKind.Sequential)] private struct AdlTemperature { public int Value; public int Flags; }
     [StructLayout(LayoutKind.Sequential)] private struct AdlActivity
@@ -18,6 +19,10 @@ internal sealed class AmdAdlTemperatureService : IDisposable
         public int ActivityPercent; public int PerformanceLevel; public int BusSpeed;
         public int BusLanes; public int MaxBusLanes; public int Flags;
     }
+    [StructLayout(LayoutKind.Sequential)] private struct AdlFanSpeedValue
+    {
+        public int Size; public int SpeedType; public int FanSpeed; public int Flags;
+    }
 
     private readonly IntPtr _library;
     private readonly IntPtr _context;
@@ -25,6 +30,7 @@ internal sealed class AmdAdlTemperatureService : IDisposable
     private readonly TemperatureGetDelegate? _temperatureGet;
     private readonly TemperatureGetDelegate? _temperatureGetN;
     private readonly ActivityGetDelegate? _activityGet;
+    private readonly FanSpeedGetDelegate? _fanSpeedGet;
     private readonly AllocDelegate _allocator = Marshal.AllocHGlobal;
 
     public bool IsAvailable { get; }
@@ -40,6 +46,7 @@ internal sealed class AmdAdlTemperatureService : IDisposable
             _temperatureGet = Marshal.GetDelegateForFunctionPointer<TemperatureGetDelegate>(NativeLibrary.GetExport(_library, "ADL2_Overdrive5_Temperature_Get"));
             _temperatureGetN = TryGetTemperatureDelegate("ADL2_OverdriveN_Temperature_Get");
             _activityGet = TryGetActivityDelegate("ADL2_Overdrive5_CurrentActivity_Get");
+            _fanSpeedGet = TryGetFanDelegate("ADL2_Overdrive5_FanSpeed_Get");
             if (create(_allocator, 1, out _context) != 0 || count(_context, out var adapters) != 0 || adapters < 1) return;
             IsAvailable = true;
         }
@@ -51,7 +58,21 @@ internal sealed class AmdAdlTemperatureService : IDisposable
         if (!IsAvailable || _activityGet is null) return (null, null, null);
         var activity = new AdlActivity { Size = Marshal.SizeOf<AdlActivity>() };
         if (_activityGet(_context, 0, ref activity) != 0) return (null, null, null);
-        return ($"{Math.Clamp(activity.ActivityPercent, 0, 100)}%", $"{activity.EngineClock} MHz", $"{activity.MemoryClock} MHz");
+        return ($"{Math.Clamp(activity.ActivityPercent, 0, 100)}%", NormalizeClock(activity.EngineClock), NormalizeClock(activity.MemoryClock));
+    }
+
+    private static string? NormalizeClock(int value) => value is > 0 and <= 5000 ? $"{value} MHz" : null;
+
+    public string? ReadFanSpeed()
+    {
+        if (!IsAvailable || _fanSpeedGet is null) return null;
+        foreach (var thermalIndex in new[] { 0, 1 })
+        {
+            var fan = new AdlFanSpeedValue { Size = Marshal.SizeOf<AdlFanSpeedValue>(), SpeedType = 1 };
+            if (_fanSpeedGet(_context, 0, thermalIndex, ref fan) == 0 && fan.FanSpeed >= 0)
+                return $"{Math.Clamp(fan.FanSpeed, 0, 100)}%";
+        }
+        return null;
     }
 
     public string? ReadCelsius()
@@ -84,6 +105,12 @@ internal sealed class AmdAdlTemperatureService : IDisposable
     private ActivityGetDelegate? TryGetActivityDelegate(string name)
     {
         try { return Marshal.GetDelegateForFunctionPointer<ActivityGetDelegate>(NativeLibrary.GetExport(_library, name)); }
+        catch { return null; }
+    }
+
+    private FanSpeedGetDelegate? TryGetFanDelegate(string name)
+    {
+        try { return Marshal.GetDelegateForFunctionPointer<FanSpeedGetDelegate>(NativeLibrary.GetExport(_library, name)); }
         catch { return null; }
     }
 
