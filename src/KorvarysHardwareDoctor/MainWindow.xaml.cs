@@ -44,4 +44,3 @@ public partial class MainWindow : Window
     private void Settings_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Configurações"; PageSubtitle.Text = "Preferências, segurança e restauração"; }
     private void Profile_Click(object sender, RoutedEventArgs e) => MessageBox.Show("O perfil só será aplicado após confirmar suporte ADLX e limites térmicos seguros.", "KORVARYS Hardware Doctor", MessageBoxButton.OK, MessageBoxImage.Information);
 }
-
