@@ -1,0 +1,8 @@
+<Application x:Class="KorvarysHardwareDoctor.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" StartupUri="MainWindow.xaml">
+  <Application.Resources>
+    <Color x:Key="Bg">#0A1020</Color><Color x:Key="Panel">#111B31</Color><Color x:Key="Panel2">#172442</Color><Color x:Key="Text">#EAF2FF</Color><Color x:Key="Muted">#8EA2C5</Color><Color x:Key="Accent">#20D9F7</Color><Color x:Key="Purple">#8B5CF6</Color>
+    <SolidColorBrush x:Key="BgBrush" Color="{StaticResource Bg}"/><SolidColorBrush x:Key="PanelBrush" Color="{StaticResource Panel}"/><SolidColorBrush x:Key="Panel2Brush" Color="{StaticResource Panel2}"/><SolidColorBrush x:Key="TextBrush" Color="{StaticResource Text}"/><SolidColorBrush x:Key="MutedBrush" Color="{StaticResource Muted}"/><SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}"/>
+    <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="FontFamily" Value="Segoe UI"/></Style>
+    <Style TargetType="Button"><Setter Property="Foreground" Value="{StaticResource TextBrush}"/><Setter Property="Background" Value="{StaticResource Panel2Brush}"/><Setter Property="BorderBrush" Value="#2B4773"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="14,9"/><Setter Property="Margin" Value="0,4"/><Setter Property="Cursor" Value="Hand"/></Style>
+  </Application.Resources>
+</Application>
