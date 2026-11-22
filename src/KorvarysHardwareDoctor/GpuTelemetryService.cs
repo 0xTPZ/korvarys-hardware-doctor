@@ -18,7 +18,8 @@ public sealed class GpuTelemetryService
                 .Select(value => value is null ? 0L : Convert.ToInt64(value))
                 .Where(value => value > 0)
                 .ToArray();
-            var usage = values.Length == 0 ? null : $"{Math.Min(100, values.Sum())}%";
+            var activity = _amd.ReadActivity();
+            var usage = activity.Usage ?? (values.Length == 0 ? null : $"{Math.Min(100, values.Sum())}%");
             return new GpuTelemetry(_amd.ReadCelsius(), usage, _amd.IsAvailable ? "AMD ADL + Windows counters" : "Windows GPU Performance Counters", values.Length > 0 || _amd.IsAvailable);
         }
         catch
