@@ -6,6 +6,8 @@ public sealed record GpuTelemetry(string? Temperature, string? Usage, string Sou
 
 public sealed class GpuTelemetryService
 {
+    private readonly AmdAdlTemperatureService _amd = new();
+
     public GpuTelemetry Read()
     {
         try
@@ -16,7 +18,7 @@ public sealed class GpuTelemetryService
                 .OfType<uint>()
                 .ToArray();
             var usage = values.Length == 0 ? null : $"{Math.Min(100, values.Select(v => (long)v).Sum())}%";
-            return new GpuTelemetry(null, usage, "Windows GPU Performance Counters", values.Length > 0);
+            return new GpuTelemetry(_amd.ReadCelsius(), usage, _amd.IsAvailable ? "AMD ADL + Windows counters" : "Windows GPU Performance Counters", values.Length > 0 || _amd.IsAvailable);
         }
         catch
         {
