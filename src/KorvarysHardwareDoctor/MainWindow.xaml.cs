@@ -38,9 +38,9 @@ public partial class MainWindow : Window
         TempText.Text = telemetry.Temperature ?? "—";
         SupportText.Text = telemetry.Supported ? $"Monitoramento ativo • {telemetry.Source}" : "Modo seguro: métrica não exposta pelo Windows";
     }
-    private void Overview_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Visão geral"; PageSubtitle.Text = "Leitura segura do estado atual do equipamento"; }
-    private void Diagnostics_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Diagnóstico"; PageSubtitle.Text = "Evidências locais de instabilidade e falhas de driver"; }
-    private void Performance_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Desempenho"; PageSubtitle.Text = "Monitoramento e tuning compatível com o hardware"; }
-    private void Settings_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Configurações"; PageSubtitle.Text = "Preferências, segurança e restauração"; }
+    private void Overview_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Visão geral"; PageSubtitle.Text = "Leitura segura do estado atual do equipamento"; SectionDetails.Text = "Resumo do hardware detectado e disponibilidade dos sensores."; }
+    private void Diagnostics_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Diagnóstico"; PageSubtitle.Text = "Evidências locais de instabilidade e falhas de driver"; SectionDetails.Text = "Próximo: histórico de eventos Display, erros WHEA e relatório exportável."; HealthText.Text = "ANÁLISE"; }
+    private void Performance_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Desempenho"; PageSubtitle.Text = "Monitoramento e tuning compatível com o hardware"; SectionDetails.Text = "Telemetria ao vivo ativa. Os controles ADLX serão liberados após validar limites térmicos."; }
+    private void Settings_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Configurações"; PageSubtitle.Text = "Preferências, segurança e restauração"; SectionDetails.Text = "Perfis, intervalo de leitura, backup e rollback ficarão disponíveis nesta seção."; }
     private void Profile_Click(object sender, RoutedEventArgs e) => MessageBox.Show("O perfil só será aplicado após confirmar suporte ADLX e limites térmicos seguros.", "KORVARYS Hardware Doctor", MessageBoxButton.OK, MessageBoxImage.Information);
 }
