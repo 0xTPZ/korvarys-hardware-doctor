@@ -30,3 +30,14 @@ O relatório é salvo localmente. O script é somente leitura e não instala, re
 Não envie relatórios públicos sem revisar nomes de usuário, caminhos e identificadores do equipamento.
 
 Licença MIT.
+
+## Aplicativo desktop
+
+O dashboard WPF está em `src/KorvarysHardwareDoctor`. Para compilar no Windows:
+
+```powershell
+dotnet build src/KorvarysHardwareDoctor/KorvarysHardwareDoctor.csproj -c Release
+```
+
+O GitHub Actions publica automaticamente um artefato Windows. O tuning só será habilitado após confirmar suporte e limites seguros via AMD ADLX.
+
