@@ -37,7 +37,7 @@ public partial class MainWindow : Window
         var telemetry = _telemetry.Read();
         UsageText.Text = telemetry.Usage ?? "—";
         TempText.Text = telemetry.Temperature ?? "—";
-        SupportText.Text = telemetry.Supported ? $"Monitoramento ativo • {telemetry.Source}" : "Modo seguro: métrica não exposta pelo Windows";
+        SupportText.Text = telemetry.Supported ? $"Monitoramento ativo • {telemetry.Source} • GPU {telemetry.CoreClock ?? "—"} • VRAM {telemetry.MemoryClock ?? "—"}" : "Modo seguro: métrica não exposta pelo Windows";
     }
     private void RefreshDiagnostics()
     {
