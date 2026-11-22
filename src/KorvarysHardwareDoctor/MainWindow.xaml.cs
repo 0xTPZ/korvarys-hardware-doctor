@@ -6,12 +6,13 @@ namespace KorvarysHardwareDoctor;
 public partial class MainWindow : Window
 {
     private readonly GpuTelemetryService _telemetry = new();
+    private readonly GpuDiagnosticsService _diagnostics = new();
     private readonly DispatcherTimer _telemetryTimer = new() { Interval = TimeSpan.FromSeconds(2) };
 
     public MainWindow()
     {
         InitializeComponent();
-        Loaded += (_, _) => { RefreshHardware(); RefreshTelemetry(); _telemetryTimer.Start(); };
+        Loaded += (_, _) => { RefreshHardware(); RefreshTelemetry(); RefreshDiagnostics(); _telemetryTimer.Start(); };
         Closed += (_, _) => _telemetryTimer.Stop();
         _telemetryTimer.Tick += (_, _) => RefreshTelemetry();
     }
@@ -38,9 +39,15 @@ public partial class MainWindow : Window
         TempText.Text = telemetry.Temperature ?? "—";
         SupportText.Text = telemetry.Supported ? $"Monitoramento ativo • {telemetry.Source}" : "Modo seguro: métrica não exposta pelo Windows";
     }
+    private void RefreshDiagnostics()
+    {
+        var result = _diagnostics.Analyze();
+        if (result.Verdict != "SAUDÁVEL") HealthText.Text = result.Verdict;
+        SectionDetails.Text = result.Summary;
+    }
     private void Overview_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Visão geral"; PageSubtitle.Text = "Leitura segura do estado atual do equipamento"; SectionDetails.Text = "Resumo do hardware detectado e disponibilidade dos sensores."; }
-    private void Diagnostics_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Diagnóstico"; PageSubtitle.Text = "Evidências locais de instabilidade e falhas de driver"; SectionDetails.Text = "Próximo: histórico de eventos Display, erros WHEA e relatório exportável."; HealthText.Text = "ANÁLISE"; }
+    private void Diagnostics_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Diagnóstico"; PageSubtitle.Text = "Evidências locais de instabilidade e falhas de driver"; RefreshDiagnostics(); }
     private void Performance_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Desempenho"; PageSubtitle.Text = "Monitoramento e tuning compatível com o hardware"; SectionDetails.Text = "Telemetria ao vivo ativa. Os controles ADLX serão liberados após validar limites térmicos."; }
     private void Settings_Click(object sender, RoutedEventArgs e) { PageTitle.Text = "Configurações"; PageSubtitle.Text = "Preferências, segurança e restauração"; SectionDetails.Text = "Perfis, intervalo de leitura, backup e rollback ficarão disponíveis nesta seção."; }
-    private void Profile_Click(object sender, RoutedEventArgs e) => MessageBox.Show("O perfil só será aplicado após confirmar suporte ADLX e limites térmicos seguros.", "KORVARYS Hardware Doctor", MessageBoxButton.OK, MessageBoxImage.Information);
+    private void Profile_Click(object sender, RoutedEventArgs e) => MessageBox.Show("Perfil preparado, mas a aplicação de clock, tensão e potência ficará bloqueada até o KORVARYS confirmar os limites reais da sua GPU pelo driver AMD. Nenhuma alteração foi feita.", "KORVARYS Hardware Doctor", MessageBoxButton.OK, MessageBoxImage.Information);
 }
